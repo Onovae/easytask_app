@@ -11,18 +11,27 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
 },
-    "dependencies": {
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "react-scripts": "5.0.1",
-        "gh-pages": "^3.2.3"
-    },
-
+"dependencies": {
+    "gh-pages": "^6.3.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "^5.0.1"
+},
 "devDependencies": {
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
     "typescript": "^4.9.5"
+},
+"browserslist": {
+    "production": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
+    ],
+    "development": [
+    "last 1 chrome version",
+    "last 1 firefox version",
+    "last 1 safari version"
+    ]
 }
 }
-
-
