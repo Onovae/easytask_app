@@ -84,7 +84,7 @@ def verify_otp(email: str, otp: str, db: Session = Depends(get_db)):
         if otp_entry.code != otp:
             raise HTTPException(status_code=401, detail="Invalid OTP")
 
-        if otp_entry.expires_at < datetime.utcnow():
+        if otp_entry.expires_at and otp_entry.expires_at < datetime.utcnow():
             raise HTTPException(status_code=401, detail="OTP expired")
 
         user.is_verified = True

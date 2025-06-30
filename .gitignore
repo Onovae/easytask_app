@@ -84,8 +84,6 @@ Thumbs.db
 
 # dotenv
 .env.*
-
-.env
 *.pyc
 alembic/versions/*.pyc
 
