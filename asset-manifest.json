@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/easytask_app/static/js/main.346b7000.js",
+    "index.html": "/easytask_app/index.html",
+    "main.346b7000.js.map": "/easytask_app/static/js/main.346b7000.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.346b7000.js"
+  ]
+}
