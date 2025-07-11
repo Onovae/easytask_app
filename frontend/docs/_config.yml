@@ -1,0 +1,6 @@
+title: EasyTask Frontend
+theme: jekyll-theme-cayman
+sass:
+  sass_dir: assets/css
+plugins:
+  - jekyll-feed
