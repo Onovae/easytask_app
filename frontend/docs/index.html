@@ -1,1 +1,97 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#000000"/><title>EasyTask</title><script defer="defer" src="/easytask_app/static/js/main.346b7000.js"></script></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="msapplication-navbutton-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>EasyTask</title>
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" />
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="EasyTask - Simplify your task management." />
+    <meta property="og:title" content="EasyTask" />
+    <meta property="og:description" content="Simplify your task management." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="logo192.png" />
+    <meta property="og:url" content="https://yourdomain.com/" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="EasyTask" />
+    <meta name="twitter:description" content="Simplify your task management." />
+    <meta name="twitter:image" content="logo192.png" />
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 0; }
+        #container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 24px; }
+        h1 { text-align: center; color: #222; }
+        ul { list-style: none; padding: 0; }
+        li { background: #f1f3f4; margin: 8px 0; padding: 12px; border-radius: 4px; }
+        form { display: flex; gap: 8px; margin-bottom: 16px; }
+        input[type="text"] { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 8px 16px; border: none; background: #007bff; color: #fff; border-radius: 4px; cursor: pointer; }
+        button:disabled { background: #aaa; }
+        .error { color: #c00; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="container">
+        <h1>EasyTask</h1>
+        <form id="taskForm">
+            <input type="text" id="taskInput" placeholder="Add a new task..." required />
+            <button type="submit">Add</button>
+        </form>
+        <div class="error" id="error"></div>
+        <ul id="taskList"></ul>
+    </div>
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/docs'; 
+
+        const taskList = document.getElementById('taskList');
+        const taskForm = document.getElementById('taskForm');
+        const taskInput = document.getElementById('taskInput');
+        const errorDiv = document.getElementById('error');
+
+        async function loadTasks() {
+            taskList.innerHTML = '<li>Loading tasks...</li>';
+            errorDiv.textContent = '';
+            try {
+                const res = await fetch(API_URL);
+                if (!res.ok) throw new Error('Failed to fetch tasks');
+                const tasks = await res.json();
+                if (Array.isArray(tasks) && tasks.length > 0) {
+                    taskList.innerHTML = tasks.map(task => `<li>${task.title || task.name || task}</li>`).join('');
+                } else {
+                    taskList.innerHTML = '<li>No tasks found.</li>';
+                }
+            } catch (err) {
+                taskList.innerHTML = '';
+                errorDiv.textContent = 'Error loading tasks: ' + err.message;
+            }
+        }
+
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = taskInput.value.trim();
+            if (!title) return;
+            errorDiv.textContent = '';
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title })
+                });
+                if (!res.ok) throw new Error('Failed to add task');
+                taskInput.value = '';
+                await loadTasks();
+            } catch (err) {
+                errorDiv.textContent = 'Error adding task: ' + err.message;
+            }
+        });
+
+        loadTasks();
+    </script>
+</body>
+</html>
