@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#4f8cff" />
+  <meta name="theme-color" content="#000000" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="msapplication-navbutton-color" content="#4f8cff" />
+  <meta name="msapplication-navbutton-color" content="#000000" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>EasyTask</title>
+
+  <!-- Link to compiled CSS -->
+  <link rel="stylesheet" href="/easytask_app/frontend/docs/assets/css/style.css" />
 
   <!-- SEO Meta Tags -->
   <meta name="description" content="EasyTask - Simplify your task management." />
@@ -18,10 +21,11 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="EasyTask" />
   <meta name="twitter:description" content="Simplify your task management." />
-
-  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
+
 <body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+
   <div id="container">
     <h1>EasyTask</h1>
     <form id="taskForm">
@@ -31,8 +35,10 @@
     <div class="error" id="error"></div>
     <ul id="taskList"></ul>
   </div>
+
   <script>
-    // Example JS for demo purposes
+    const API_URL = null; // Backend not hosted yet
+
     const taskList = document.getElementById('taskList');
     const taskForm = document.getElementById('taskForm');
     const taskInput = document.getElementById('taskInput');
@@ -46,7 +52,7 @@
       taskInput.value = '';
     });
 
-    taskList.innerHTML = '<li>No tasks yet.</li>';
+    taskList.innerHTML = '<li>No tasks fetched. Backend not live yet.</li>';
   </script>
 </body>
 </html>
