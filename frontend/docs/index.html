@@ -20,97 +20,8 @@
   <meta name="twitter:description" content="Simplify your task management." />
 
   <link rel="stylesheet" href="assets/css/style.css" />
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #4f8cff 0%, #a6e1fa 100%);
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-    }
-    #container {
-      max-width: 500px;
-      margin: 40px auto;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px #4f8cff33;
-      padding: 32px 24px 24px 24px;
-    }
-    h1 {
-      text-align: center;
-      color: #4f8cff;
-      letter-spacing: 2px;
-      margin-bottom: 24px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      background: #eaf3ff;
-      margin: 8px 0;
-      padding: 14px 12px;
-      border-radius: 6px;
-      color: #23406e;
-      font-size: 1.05em;
-      box-shadow: 0 1px 4px #4f8cff11;
-      transition: background 0.2s;
-    }
-    li:hover {
-      background: #d2e7ff;
-    }
-    form {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-    input[type="text"] {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #b3d1ff;
-      border-radius: 6px;
-      font-size: 1em;
-      background: #f7fbff;
-      transition: border 0.2s;
-    }
-    input[type="text"]:focus {
-      border: 1.5px solid #4f8cff;
-      outline: none;
-      background: #eaf3ff;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      background: linear-gradient(90deg, #4f8cff 60%, #6fd6ff 100%);
-      color: #fff;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 1em;
-      box-shadow: 0 2px 8px #4f8cff22;
-      transition: background 0.2s, box-shadow 0.2s;
-    }
-    button:hover:not(:disabled) {
-      background: linear-gradient(90deg, #357ae8 60%, #4f8cff 100%);
-      box-shadow: 0 4px 16px #4f8cff33;
-    }
-    button:disabled {
-      background: #b3d1ff;
-      color: #eee;
-      cursor: not-allowed;
-    }
-    .error {
-      color: #c00;
-      margin-bottom: 12px;
-      text-align: center;
-      font-weight: 500;
-    }
-  </style>
 </head>
-
 <body>
-  <noscript>You need to enable JavaScript to run this app.</noscript>
-
   <div id="container">
     <h1>EasyTask</h1>
     <form id="taskForm">
@@ -120,10 +31,8 @@
     <div class="error" id="error"></div>
     <ul id="taskList"></ul>
   </div>
-
   <script>
-    const API_URL = null; // Backend not hosted yet
-
+    // Example JS for demo purposes
     const taskList = document.getElementById('taskList');
     const taskForm = document.getElementById('taskForm');
     const taskInput = document.getElementById('taskInput');
@@ -137,7 +46,7 @@
       taskInput.value = '';
     });
 
-    taskList.innerHTML = '<li>No tasks fetched. Backend not live yet.</li>';
+    taskList.innerHTML = '<li>No tasks yet.</li>';
   </script>
 </body>
 </html>
