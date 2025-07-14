@@ -80,7 +80,7 @@ button {
   box-shadow: 0 2px 8px rgba(79, 140, 255, 0.13);
   transition: background 0.2s, box-shadow 0.2s;
   &:hover:not(:disabled) {
-    background: linear-gradient(90deg, darken($primary, 10%) 60%, $primary 100%);
+background: linear-gradient(90deg, adjust-color($primary, $lightness: -10%) 60%, $primary 100%);
     box-shadow: 0 4px 16px rgba(79, 140, 255, 0.2);
   }
   &:disabled {
@@ -95,3 +95,4 @@ button {
   margin-bottom: 12px;
   text-align: center;
   font-weight: 500;
+}  
