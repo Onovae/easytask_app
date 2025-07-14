@@ -1,11 +1,22 @@
 title: EasyTask Frontend
 theme: jekyll-theme-cayman
+
 sass:
   sass_dir: assets/css
+
 plugins:
   - jekyll-feed
+
 exclude:
   - node_modules
   - README.md
   - package.json
   - package-lock.json
+  - frontend.zip
+  - echo
+  - src
+  - build
+  - public
+  - venv
+
+markdown: kramdown
