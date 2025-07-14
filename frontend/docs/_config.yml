@@ -10,9 +10,7 @@ exclude:
   - package.json
   - package-lock.json
   - frontend.zip
-sass:
-  sass_dir: assets/css
 plugins:
   - jekyll-feed
 markdown: kramdown
-source: .
+source: frontend
