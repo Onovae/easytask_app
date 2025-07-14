@@ -1,97 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="msapplication-navbutton-color" content="#000000" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>EasyTask</title>
-    <!-- Favicon -->
-    <link rel="icon" href="favicon.ico" />
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="EasyTask - Simplify your task management." />
-    <meta property="og:title" content="EasyTask" />
-    <meta property="og:description" content="Simplify your task management." />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="logo192.png" />
-    <meta property="og:url" content="https://yourdomain.com/" />
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="EasyTask" />
-    <meta name="twitter:description" content="Simplify your task management." />
-    <meta name="twitter:image" content="logo192.png" />
-    <style>
-        body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 0; }
-        #container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 24px; }
-        h1 { text-align: center; color: #222; }
-        ul { list-style: none; padding: 0; }
-        li { background: #f1f3f4; margin: 8px 0; padding: 12px; border-radius: 4px; }
-        form { display: flex; gap: 8px; margin-bottom: 16px; }
-        input[type="text"] { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 8px 16px; border: none; background: #007bff; color: #fff; border-radius: 4px; cursor: pointer; }
-        button:disabled { background: #aaa; }
-        .error { color: #c00; margin-bottom: 12px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#4f8cff" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="msapplication-navbutton-color" content="#4f8cff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>EasyTask</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="EasyTask - Simplify your task management." />
+  <meta property="og:title" content="EasyTask" />
+  <meta property="og:description" content="Simplify your task management." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://onovae.github.io/easytask_app/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="EasyTask" />
+  <meta name="twitter:description" content="Simplify your task management." />
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #4f8cff 0%, #a6e1fa 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    #container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px #4f8cff33;
+      padding: 32px 24px 24px 24px;
+    }
+    h1 {
+      text-align: center;
+      color: #4f8cff;
+      letter-spacing: 2px;
+      margin-bottom: 24px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #eaf3ff;
+      margin: 8px 0;
+      padding: 14px 12px;
+      border-radius: 6px;
+      color: #23406e;
+      font-size: 1.05em;
+      box-shadow: 0 1px 4px #4f8cff11;
+      transition: background 0.2s;
+    }
+    li:hover {
+      background: #d2e7ff;
+    }
+    form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #b3d1ff;
+      border-radius: 6px;
+      font-size: 1em;
+      background: #f7fbff;
+      transition: border 0.2s;
+    }
+    input[type="text"]:focus {
+      border: 1.5px solid #4f8cff;
+      outline: none;
+      background: #eaf3ff;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: linear-gradient(90deg, #4f8cff 60%, #6fd6ff 100%);
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1em;
+      box-shadow: 0 2px 8px #4f8cff22;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    button:hover:not(:disabled) {
+      background: linear-gradient(90deg, #357ae8 60%, #4f8cff 100%);
+      box-shadow: 0 4px 16px #4f8cff33;
+    }
+    button:disabled {
+      background: #b3d1ff;
+      color: #eee;
+      cursor: not-allowed;
+    }
+    .error {
+      color: #c00;
+      margin-bottom: 12px;
+      text-align: center;
+      font-weight: 500;
+    }
+  </style>
 </head>
+
 <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="container">
-        <h1>EasyTask</h1>
-        <form id="taskForm">
-            <input type="text" id="taskInput" placeholder="Add a new task..." required />
-            <button type="submit">Add</button>
-        </form>
-        <div class="error" id="error"></div>
-        <ul id="taskList"></ul>
-    </div>
-    <script>
-        const API_URL = 'http://127.0.0.1:8000/docs'; 
+  <noscript>You need to enable JavaScript to run this app.</noscript>
 
-        const taskList = document.getElementById('taskList');
-        const taskForm = document.getElementById('taskForm');
-        const taskInput = document.getElementById('taskInput');
-        const errorDiv = document.getElementById('error');
+  <div id="container">
+    <h1>EasyTask</h1>
+    <form id="taskForm">
+      <input type="text" id="taskInput" placeholder="Add a new task..." required />
+      <button type="submit">Add</button>
+    </form>
+    <div class="error" id="error"></div>
+    <ul id="taskList"></ul>
+  </div>
 
-        async function loadTasks() {
-            taskList.innerHTML = '<li>Loading tasks...</li>';
-            errorDiv.textContent = '';
-            try {
-                const res = await fetch(API_URL);
-                if (!res.ok) throw new Error('Failed to fetch tasks');
-                const tasks = await res.json();
-                if (Array.isArray(tasks) && tasks.length > 0) {
-                    taskList.innerHTML = tasks.map(task => `<li>${task.title || task.name || task}</li>`).join('');
-                } else {
-                    taskList.innerHTML = '<li>No tasks found.</li>';
-                }
-            } catch (err) {
-                taskList.innerHTML = '';
-                errorDiv.textContent = 'Error loading tasks: ' + err.message;
-            }
-        }
+  <script>
+    const API_URL = null; // Backend not hosted yet
 
-        taskForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const title = taskInput.value.trim();
-            if (!title) return;
-            errorDiv.textContent = '';
-            try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title })
-                });
-                if (!res.ok) throw new Error('Failed to add task');
-                taskInput.value = '';
-                await loadTasks();
-            } catch (err) {
-                errorDiv.textContent = 'Error adding task: ' + err.message;
-            }
-        });
+    const taskList = document.getElementById('taskList');
+    const taskForm = document.getElementById('taskForm');
+    const taskInput = document.getElementById('taskInput');
+    const errorDiv = document.getElementById('error');
 
-        loadTasks();
-    </script>
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = taskInput.value.trim();
+      if (!title) return;
+      taskList.innerHTML += `<li>${title}</li>`;
+      taskInput.value = '';
+    });
+
+    taskList.innerHTML = '<li>No tasks fetched. Backend not live yet.</li>';
+  </script>
 </body>
 </html>
