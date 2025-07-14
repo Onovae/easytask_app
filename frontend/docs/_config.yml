@@ -13,4 +13,4 @@ exclude:
 plugins:
   - jekyll-feed
 markdown: kramdown
-source: frontend
+source: .
