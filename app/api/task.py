@@ -1,8 +1,9 @@
 # app/api/task.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
-from app.schemas.task import TaskCreate, TaskUpdate, TaskRead
+from typing import Optional
+from app.schemas.task import TaskCreate, TaskUpdate, TaskRead, TaskPriority, TaskLabel
 from app.models.task import Task
 from app.core.security import get_current_user
 from app.db.session import get_db
@@ -28,6 +29,9 @@ def create(
 
 @router.get("/", response_model=list[TaskRead])
 def read_all(
+    priority: Optional[TaskPriority] = Query(None, description="Filter by priority"),
+    label: Optional[TaskLabel] = Query(None, description="Filter by label"),
+    is_done: Optional[bool] = Query(None, description="Filter by completion status"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -37,7 +41,23 @@ def read_all(
             user_id = UUID(str(user_id))
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid user ID")
-    return crud_task.get_tasks(db, user_id)
+    
+    # Get all tasks for the user
+    tasks = crud_task.get_tasks(db, user_id)
+    
+    # Apply filters
+    if priority is not None:
+        tasks = [task for task in tasks if task.priority == priority]
+    if label is not None:
+        tasks = [task for task in tasks if task.label == label]
+    if is_done is not None:
+        tasks = [task for task in tasks if task.is_done == is_done]
+    
+    # Sort by priority (high -> medium -> low) and creation date
+    priority_order = {"high": 0, "medium": 1, "low": 2}
+    tasks.sort(key=lambda t: (priority_order.get(t.priority.value if t.priority else "medium", 1), t.created_at), reverse=True)
+    
+    return tasks
 
 @router.get("/{task_id}", response_model=TaskRead)
 def read(

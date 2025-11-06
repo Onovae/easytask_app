@@ -1,26 +1,56 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
+const PRIORITIES = ['low', 'medium', 'high']
+const LABELS = ['work', 'personal', 'urgent', 'other']
+
+const PRIORITY_COLORS = {
+  high: 'bg-red-100 text-red-800 border-red-300',
+  medium: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  low: 'bg-green-100 text-green-800 border-green-300'
+}
+
+const LABEL_COLORS = {
+  work: 'bg-blue-100 text-blue-800',
+  personal: 'bg-purple-100 text-purple-800',
+  urgent: 'bg-red-100 text-red-800',
+  other: 'bg-gray-100 text-gray-800'
+}
+
 export default function Dashboard() {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showNewTask, setShowNewTask] = useState(false)
+  const [filterLabel, setFilterLabel] = useState('')
+  const [filterPriority, setFilterPriority] = useState('')
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    reminder_time: ''
+    reminder_time: '',
+    priority: 'medium',
+    label: 'other'
   })
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
 
   useEffect(() => {
     fetchTasks()
-  }, [])
+  }, [filterLabel, filterPriority])
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/tasks`)
+      let url = `${API_URL}/api/tasks`
+      const params = new URLSearchParams()
+      
+      if (filterLabel) params.append('label', filterLabel)
+      if (filterPriority) params.append('priority', filterPriority)
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`
+      }
+      
+      const response = await axios.get(url)
       setTasks(response.data)
       setError('')
     } catch (err) {
@@ -38,12 +68,14 @@ export default function Dashboard() {
       const taskData = {
         title: newTask.title,
         description: newTask.description,
+        priority: newTask.priority,
+        label: newTask.label,
         ...(newTask.reminder_time && { reminder_time: newTask.reminder_time })
       }
 
       await axios.post(`${API_URL}/api/tasks`, taskData)
       
-      setNewTask({ title: '', description: '', reminder_time: '' })
+      setNewTask({ title: '', description: '', reminder_time: '', priority: 'medium', label: 'other' })
       setShowNewTask(false)
       fetchTasks()
     } catch (err) {
@@ -89,7 +121,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">My Tasks</h1>
         <button
           onClick={() => setShowNewTask(!showNewTask)}
@@ -97,6 +129,51 @@ export default function Dashboard() {
         >
           {showNewTask ? 'Cancel' : '+ New Task'}
         </button>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-6 flex flex-wrap gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Filter by Label</label>
+          <select
+            value={filterLabel}
+            onChange={(e) => setFilterLabel(e.target.value)}
+            className="input-field py-2 text-sm"
+          >
+            <option value="">All Labels</option>
+            {LABELS.map(label => (
+              <option key={label} value={label}>{label.charAt(0).toUpperCase() + label.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Filter by Priority</label>
+          <select
+            value={filterPriority}
+            onChange={(e) => setFilterPriority(e.target.value)}
+            className="input-field py-2 text-sm"
+          >
+            <option value="">All Priorities</option>
+            {PRIORITIES.map(priority => (
+              <option key={priority} value={priority}>{priority.charAt(0).toUpperCase() + priority.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+
+        {(filterLabel || filterPriority) && (
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                setFilterLabel('')
+                setFilterPriority('')
+              }}
+              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -136,6 +213,42 @@ export default function Dashboard() {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Priority *
+                </label>
+                <select
+                  value={newTask.priority}
+                  onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                  className="input-field"
+                >
+                  {PRIORITIES.map(priority => (
+                    <option key={priority} value={priority}>
+                      {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Label *
+                </label>
+                <select
+                  value={newTask.label}
+                  onChange={(e) => setNewTask({ ...newTask, label: e.target.value })}
+                  className="input-field"
+                >
+                  {LABELS.map(label => (
+                    <option key={label} value={label}>
+                      {label.charAt(0).toUpperCase() + label.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Reminder Time (Optional)
@@ -166,7 +279,7 @@ export default function Dashboard() {
       ) : (
         <div className="grid gap-4">
           {tasks.map((task) => (
-            <div key={task.id} className="card hover:shadow-lg transition-shadow">
+            <div key={task.id} className={`card hover:shadow-lg transition-shadow border-l-4 ${PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium}`}>
               <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-3 flex-1">
                   <input
@@ -176,9 +289,21 @@ export default function Dashboard() {
                     className="mt-1 h-5 w-5 text-primary-600 rounded focus:ring-primary-500"
                   />
                   <div className="flex-1">
-                    <h3 className={`text-lg font-semibold ${task.is_done ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                      {task.title}
-                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className={`text-lg font-semibold ${task.is_done ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                        {task.title}
+                      </h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${LABEL_COLORS[task.label] || LABEL_COLORS.other}`}>
+                        {task.label}
+                      </span>
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        task.priority === 'high' ? 'bg-red-500 text-white' : 
+                        task.priority === 'medium' ? 'bg-yellow-500 text-white' : 
+                        'bg-green-500 text-white'
+                      }`}>
+                        {task.priority}
+                      </span>
+                    </div>
                     {task.description && (
                       <p className={`mt-1 text-sm ${task.is_done ? 'text-gray-400' : 'text-gray-600'}`}>
                         {task.description}
