@@ -46,6 +46,8 @@ class EmailSettings(BaseSettings):
     SMTP_FROM: str = ""
     SMTP_TLS: bool = True
     BREVO_API_KEY: str = ""
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM: str = "EasyTask <onboarding@resend.dev>"
     SMS_SENDER: str = ""
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

@@ -34,10 +34,14 @@ def generate_otp():
     return str(random.randint(100000, 999999))
 
 def send_otp_sms(phone_number: str, otp: str):
-    client = Client(settings.app.TWILIO_ACCOUNT_SID, settings.app.TWILIO_AUTH_TOKEN)
-    message = client.messages.create(
-        body=f"Your EasyTask verification code is: {otp}",
-        from_=settings.app.TWILIO_PHONE_NUMBER,
-        to=phone_number
-    )
-    return message.sid
+    try:
+        client = Client(settings.app.TWILIO_ACCOUNT_SID, settings.app.TWILIO_AUTH_TOKEN)
+        message = client.messages.create(
+            body=f"Your EasyTask verification code is: {otp}",
+            from_=settings.app.TWILIO_PHONE_NUMBER,
+            to=phone_number
+        )
+        return message.sid
+    except Exception as e:
+        print(f"Failed to send SMS: {e}")
+        raise Exception(f"SMS sending failed: {str(e)}")

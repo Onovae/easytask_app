@@ -4,7 +4,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 
 from app.schemas.user import (
-    UserCreate, UserRead, UserLogin, UserOut, UserUpdate, UserProfile, ChangePasswordRequest
+    UserCreate, UserRead, UserLogin, UserOut, UserUpdate, UserProfile, 
+    ChangePasswordRequest, VerifyEmailOTP, ResendEmailOTP
 )
 from app.models.user import User
 from app.crud import user as crud_user
@@ -39,15 +40,49 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    token = create_email_token(user_in.email)
-    verify_url = f"{settings.app.FRONTEND_URL}/verify-email?token={token}"
-    send_email(
-        to_email=user_in.email,
-        subject="Verify Your Email",
-        body=f"<p>Click <a href='{verify_url}'>here</a> to verify your email.</p>"
-    )
+    # Generate OTP for email verification
+    otp = generate_otp()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+    
+    # Store OTP in database
+    db.query(OtpEntry).filter(OtpEntry.email == user_in.email).delete()
+    db.add(OtpEntry(email=user_in.email, code=otp, expires_at=expires_at))
+    db.commit()
 
-    return {"msg": "Verify your email address before logging in."}
+    # Try to send OTP email
+    try:
+        send_email(
+            to_email=user_in.email,
+            subject="Verify Your EasyTask Account",
+            body=f"""
+            <h2>Welcome to EasyTask!</h2>
+            <p>Your verification code is:</p>
+            <h1 style="color: #4CAF50; font-size: 32px; letter-spacing: 5px;">{otp}</h1>
+            <p>This code will expire in 10 minutes.</p>
+            <p>If you didn't create an account, please ignore this email.</p>
+            """
+        )
+        return {
+            "msg": "User registered successfully. Please check your email for the verification code.",
+            "note": "Use the /verify-email-otp endpoint to verify your account with the code."
+        }
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Warning: Could not send OTP email: {e}")
+        
+        # Check if it's a Resend domain verification issue
+        if "verify a domain" in error_msg.lower():
+            return {
+                "msg": "User registered successfully.",
+                "otp": otp,  # Return OTP in response for testing
+                "note": "Email delivery requires a verified domain. For testing, the OTP is included in this response. Use /verify-email-otp to verify."
+            }
+        
+        return {
+            "msg": "User registered successfully.",
+            "otp": otp,  # Return OTP in response as fallback
+            "note": "Email delivery is currently unavailable. Use the OTP above with /verify-email-otp to verify."
+        }
 
 
 
@@ -84,8 +119,14 @@ def verify_otp(email: str, otp: str, db: Session = Depends(get_db)):
         if otp_entry.code != otp:
             raise HTTPException(status_code=401, detail="Invalid OTP")
 
-        if otp_entry.expires_at is not None and otp_entry.expires_at < datetime.utcnow():
-            raise HTTPException(status_code=401, detail="OTP expired")
+            # Compare expiry safely (handle naive vs aware datetimes)
+            now_utc = datetime.now(timezone.utc)
+            exp = otp_entry.expires_at
+            if exp is not None:
+                if exp.tzinfo is None:
+                    exp = exp.replace(tzinfo=timezone.utc)
+                if exp < now_utc:
+                    raise HTTPException(status_code=401, detail="OTP expired")
 
         user.is_verified = True
         db.delete(otp_entry)
@@ -100,6 +141,110 @@ def verify_otp(email: str, otp: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Server error during OTP verification: {str(e)}")
 
 
+@router.post("/verify-email-otp")
+def verify_email_otp(data: VerifyEmailOTP, db: Session = Depends(get_db)):
+    """Verify email using OTP code sent to email"""
+    try:
+        user = db.query(User).filter(User.email == data.email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check OTP
+        otp_entry = db.query(OtpEntry).filter(OtpEntry.email == data.email).first()
+        if not otp_entry:
+            raise HTTPException(status_code=404, detail="OTP not found. Please request a new one.")
+        
+        # Debug logging
+        print(f"DEBUG: Received OTP: '{data.otp}', Stored OTP: '{otp_entry.code}'")
+        print(f"DEBUG: OTP types - Received: {type(data.otp)}, Stored: {type(otp_entry.code)}")
+        
+        if otp_entry.code != data.otp:
+            raise HTTPException(status_code=401, detail=f"Invalid OTP. Received: {data.otp}, Expected: {otp_entry.code}")
+        
+            # Compare expiry safely (handle naive vs aware datetimes)
+            now_utc = datetime.now(timezone.utc)
+            exp = otp_entry.expires_at
+            if exp is not None:
+                if exp.tzinfo is None:
+                    exp = exp.replace(tzinfo=timezone.utc)
+                if exp < now_utc:
+                    raise HTTPException(status_code=401, detail="OTP expired. Please request a new one.")
+        
+        # Mark user as verified and delete OTP
+        user.is_verified = True
+        db.delete(otp_entry)
+        db.commit()
+        
+        return {"msg": "Email verified successfully! You can now login."}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.post("/resend-email-otp")
+def resend_email_otp(data: ResendEmailOTP, db: Session = Depends(get_db)):
+    """Resend OTP to email"""
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.is_verified:
+        raise HTTPException(status_code=400, detail="Email already verified")
+    
+    # Generate new OTP
+    otp = generate_otp()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+    
+    # Update or create OTP entry
+    db.query(OtpEntry).filter(OtpEntry.email == data.email).delete()
+    db.add(OtpEntry(email=data.email, code=otp, expires_at=expires_at))
+    db.commit()
+    
+    # Send OTP email
+    try:
+        send_email(
+            to_email=data.email,
+            subject="Your New EasyTask Verification Code",
+            body=f"""
+            <h2>EasyTask Verification</h2>
+            <p>Your new verification code is:</p>
+            <h1 style="color: #4CAF50; font-size: 32px; letter-spacing: 5px;">{otp}</h1>
+            <p>This code will expire in 10 minutes.</p>
+            """
+        )
+        return {"msg": "New verification code sent to your email."}
+    except Exception as e:
+        print(f"Warning: Could not send OTP email: {e}")
+        return {
+            "msg": "New verification code generated.",
+            "otp": otp,
+            "note": "Email delivery failed. Use the OTP above to verify."
+        }
+
+
+@router.get("/verify-email")
+def verify_email(token: str, db: Session = Depends(get_db)):
+    """Verify email using the token from the verification link (for frontend use)"""
+    try:
+        email = verify_email_token(token)
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user.is_verified = True
+        db.commit()
+        
+        return {"msg": "Email verified successfully! You can now login."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+
+
 @router.post("/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -109,9 +254,21 @@ def login(
     if not user or not verify_password(form_data.password, getattr(user, "password_hash", "")):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
+    # Check if user is verified
+    if not user.is_verified:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Please verify your email before logging in")
 
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "full_name": user.full_name,
+            "is_verified": user.is_verified
+        }
+    }
 
 @router.get("/user/profile", response_model=UserOut)
 def get_profile(current_user: User = Depends(get_current_user)):
@@ -126,13 +283,16 @@ def request_password_reset(email: EmailStr, db: Session = Depends(get_db)):
     token = create_email_token(str(user.email))
     reset_link = f"{settings.app.FRONTEND_URL}/reset-password?token={token}"
     
-    send_email(
-        to_email=str(user.email),
-        subject="Reset Your Password",
-        body=f"<p>Click <a href='{reset_link}'>here</a> to reset your password.</p>"
-    )
-
-    return {"msg": "Password reset email sent"}
+    try:
+        send_email(
+            to_email=str(user.email),
+            subject="Reset Your Password",
+            body=f"<p>Click <a href='{reset_link}'>here</a> to reset your password.</p>"
+        )
+        return {"msg": "Password reset email sent"}
+    except Exception as e:
+        print(f"Warning: Could not send password reset email: {e}")
+        return {"msg": "Password reset email service is currently unavailable", "token": token}
 
 @router.post("/reset-password")
 def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):

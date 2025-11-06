@@ -13,7 +13,6 @@ class Task(Base):
     title = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
     due_date = Column(DateTime, nullable=True)
-    completed = Column(Boolean, default=False)
     is_done = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
     reminder_at = Column(DateTime, nullable=True)

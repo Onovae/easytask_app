@@ -5,11 +5,15 @@ from itsdangerous import URLSafeTimedSerializer
 from app.core.config import get_settings
 from email.mime.text import MIMEText
 import httpx
-
+import resend
 
 
 settings = get_settings()
 serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
+
+# Configure Resend API key
+if settings.email.RESEND_API_KEY:
+    resend.api_key = settings.email.RESEND_API_KEY
 
 def generate_reset_token(email: str) -> str:
     return serializer.dumps(email, salt="reset-password")
@@ -31,35 +35,35 @@ def send_reset_email(email: str, token: str):
         server.send_message(msg)
 
 
-
 def send_email(to_email: str, subject: str, body: str):
-    sender_email = settings.email.SMTP_FROM
-    sender_name = "EasyTask"
-    if "<" in sender_email:
-        sender_name, sender_email = sender_email.split("<")
-        sender_email = sender_email.replace(">", "").strip()
-        sender_name = sender_name.strip()
-
-    headers = {
-        "accept": "application/json",
-        "api-key": settings.email.BREVO_API_KEY,
-        "content-type": "application/json"
-    }
-
-    payload = {
-        "sender": {"name": sender_name, "email": sender_email},
-        "to": [{"email": to_email}],
-        "subject": subject,
-        "htmlContent": body
-    }
-
-    response = httpx.post("https://api.brevo.com/v3/smtp/email", headers=headers, json=payload)
-
-    if response.status_code >= 400:
-        print(f"Email send error: {response.status_code} - {response.text}")
-        raise Exception("Email sending failed.")
-
-    return True
+    """
+    Send email using Resend (preferred) or fall back to Brevo
+    """
+    try:
+        # Try Resend first (simpler and more reliable)
+        if settings.email.RESEND_API_KEY:
+            params = {
+                "from": settings.email.EMAIL_FROM,
+                "to": [to_email],
+                "subject": subject,
+                "html": body
+            }
+            
+            response = resend.Emails.send(params)
+            print(f"✓ Email sent successfully via Resend: {response}")
+            return True
+        
+        # Fall back to Brevo if Resend is not configured
+        elif settings.email.BREVO_API_KEY:
+            return send_email_with_brevo(to_email, subject, body)
+        
+        else:
+            print("Warning: No email service configured (RESEND_API_KEY or BREVO_API_KEY)")
+            return False
+            
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        raise Exception(f"Email sending failed: {str(e)}")
 
 def send_email_with_brevo(to_email: str, subject: str, body: str):
     headers = {

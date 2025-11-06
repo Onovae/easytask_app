@@ -14,12 +14,15 @@ class TaskBase(BaseModel):
 class TaskCreate(TaskBase):
     pass
 
-class TaskUpdate(TaskBase):
-    completed: Optional[bool] = None
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+    is_done: Optional[bool] = None
+    reminder_at: Optional[datetime] = None
 
 class TaskRead(TaskBase):
     id: UUID
-    completed: bool
     created_at: datetime
     user_id: UUID
 

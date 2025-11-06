@@ -21,10 +21,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Health check endpoint
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "EasyTask API"}
+
 # Include API routers
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(user.router, prefix="/user", tags=["User"])
-app.include_router(task.router, prefix="/api/tasks", tags=["Tasks"])
+app.include_router(task.router, prefix="/api", tags=["Tasks"])
 
 
 # # Start reminder thread

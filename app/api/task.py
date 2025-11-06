@@ -58,6 +58,7 @@ def read(
     return task
 
 @router.put("/{task_id}", response_model=TaskRead)
+@router.patch("/{task_id}", response_model=TaskRead)
 def update(
     task_id: UUID,
     task_in: TaskUpdate,
